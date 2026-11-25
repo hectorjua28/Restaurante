@@ -1,0 +1,148 @@
+.table-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+
+  strong {
+    margin-left: 6px;
+    font-size: 1.6rem;
+  }
+}
+
+ion-segment {
+  margin-bottom: 8px;
+}
+
+ion-searchbar {
+  padding: 4px 0;
+}
+
+.chips {
+  display: flex;
+  overflow-x: auto;
+  gap: 2px;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+}
+
+ion-chip {
+  flex-shrink: 0;
+  min-height: 40px;
+  --background: var(--pinguin-amarillo);
+  --color: var(--pinguin-pizarra);
+  font-weight: 600;
+}
+
+.products,
+.lines {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.product {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 64px;
+  padding: 12px 14px;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+
+  &.sold-out {
+    opacity: 0.55;
+  }
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.desc {
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.side {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.price {
+  font-weight: 700;
+}
+
+.add {
+  font-size: 26px;
+  border-radius: 50%;
+  background: var(--pinguin-amarillo);
+  padding: 4px;
+}
+
+.line {
+  padding: 12px 14px;
+}
+
+.line-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 1.05rem;
+}
+
+.small {
+  font-size: 0.85rem;
+}
+
+.note {
+  margin-top: 4px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(232, 197, 49, 0.2);
+  font-size: 0.9rem;
+}
+
+.line-actions,
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stepper {
+  gap: 6px;
+
+  strong {
+    min-width: 24px;
+    text-align: center;
+  }
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px calc(10px + var(--ion-safe-area-bottom, 0px));
+  background: #fff;
+  box-shadow: 0 -2px 8px rgba(46, 59, 68, 0.08);
+
+  .total {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+
+    strong {
+      font-size: 1.3rem;
+    }
+  }
+}

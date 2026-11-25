@@ -1,0 +1,76 @@
+<app-header title="Mesas" />
+
+<ion-content class="ion-padding">
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+    <ion-refresher-content pullingText="Desliza para actualizar" refreshingText="Actualizando…"></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="counters">
+    <div class="counter libre">
+      <strong data-testid="count-libre">{{ counts().libre }}</strong>
+      <span>Libres</span>
+    </div>
+    <div class="counter ocupada">
+      <strong data-testid="count-ocupada">{{ counts().ocupada }}</strong>
+      <span>Ocupadas</span>
+    </div>
+    <div class="counter por_cobrar">
+      <strong data-testid="count-por-cobrar">{{ counts().por_cobrar }}</strong>
+      <span>Por cobrar</span>
+    </div>
+  </div>
+
+  <ion-segment [value]="filter()" (ionChange)="setFilter($event.detail.value)" scrollable>
+    <ion-segment-button value="todas"><ion-label>Todas</ion-label></ion-segment-button>
+    <ion-segment-button value="libre"><ion-label>Libres</ion-label></ion-segment-button>
+    <ion-segment-button value="ocupada"><ion-label>Ocupadas</ion-label></ion-segment-button>
+    <ion-segment-button value="por_cobrar"><ion-label>Por cobrar</ion-label></ion-segment-button>
+  </ion-segment>
+
+  @if (error() && tables().length === 0) {
+    <div class="empty-state">
+      <p>{{ error() }}</p>
+      <ion-button (click)="load()" color="secondary">
+        <ion-icon slot="start" name="refresh-outline"></ion-icon>
+        Reintentar
+      </ion-button>
+    </div>
+  } @else if (!loaded()) {
+    <div class="grid">
+      @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+        <div class="tile card"><ion-skeleton-text animated style="height: 72px"></ion-skeleton-text></div>
+      }
+    </div>
+  } @else if (visible().length === 0) {
+    <div class="empty-state">
+      <ion-icon name="restaurant-outline"></ion-icon>
+      <p>No hay mesas con este filtro.</p>
+    </div>
+  } @else {
+    <div class="grid">
+      @for (table of visible(); track table.id) {
+        <button
+          type="button"
+          [class]="'tile card st-' + table.status"
+          [class.selected]="draft.tableId() === table.id"
+          (click)="choose(table)"
+          [attr.data-testid]="'table-' + table.number"
+          [attr.aria-label]="'Mesa ' + table.number + ', ' + table.status_label"
+        >
+          <div class="number">{{ table.number }}</div>
+          <span class="status-badge" [class]="'status-badge st-' + table.status">{{ table.status_label }}</span>
+          <div class="meta">
+            <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
+            {{ table.capacity }} personas
+          </div>
+          @if (table.active_orders_count > 0) {
+            <div class="meta strong">
+              {{ table.active_orders_count }} {{ table.active_orders_count === 1 ? 'orden' : 'órdenes' }} ·
+              {{ table.active_total_cents | money }}
+            </div>
+          }
+        </button>
+      }
+    </div>
+  }
+</ion-content>

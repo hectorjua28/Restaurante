@@ -1,0 +1,111 @@
+/* Estilos globales de la app de meseros. */
+@import '@ionic/angular/css/core.css';
+@import '@ionic/angular/css/normalize.css';
+@import '@ionic/angular/css/structure.css';
+@import '@ionic/angular/css/typography.css';
+@import '@ionic/angular/css/display.css';
+@import '@ionic/angular/css/padding.css';
+@import '@ionic/angular/css/flex-utils.css';
+@import '@ionic/angular/css/text-alignment.css';
+
+/* Siempre en tema claro: fondo claro y tarjetas blancas (identidad del restaurante). */
+:root {
+  color-scheme: light;
+}
+
+body {
+  font-size: 16px;
+}
+
+/* Botones de al menos 44 px para usarse con una mano. */
+ion-button {
+  min-height: 44px;
+  --border-radius: 12px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+ion-button.button-large {
+  min-height: 52px;
+  font-size: 1.05rem;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(46, 59, 68, 0.08);
+  border: 1px solid rgba(46, 59, 68, 0.06);
+}
+
+.muted {
+  color: rgba(46, 59, 68, 0.65);
+}
+
+.toolbar-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ffffff;
+  padding: 2px;
+  margin-left: 12px;
+}
+
+/* Insignias de estado con color consistente en toda la app. */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+
+  &.st-pendiente,
+  &.st-por_cobrar {
+    background: var(--st-pendiente);
+    color: var(--pinguin-pizarra);
+  }
+  &.st-en_preparacion,
+  &.st-ocupada {
+    background: var(--st-preparacion);
+  }
+  &.st-lista,
+  &.st-libre {
+    background: var(--st-lista);
+  }
+  &.st-entregada {
+    background: var(--st-entregada);
+  }
+  &.st-cobrada {
+    background: var(--st-cobrada);
+  }
+  &.st-cancelada {
+    background: var(--st-cancelada);
+  }
+}
+
+.offline-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--pinguin-rojo);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 16px;
+  color: rgba(46, 59, 68, 0.7);
+
+  ion-icon {
+    font-size: 56px;
+    color: rgba(46, 59, 68, 0.35);
+  }
+}

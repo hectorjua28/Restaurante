@@ -68,3 +68,30 @@ jobs:
 
       - name: Pruebas (Pest sobre MySQL 8)
         run: vendor/bin/pest
+
+  mobile:
+    name: App móvil (Ionic + Angular)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: ESLint y Prettier
+        run: npm run lint
+
+      - name: Pruebas unitarias (Vitest)
+        run: npm test
+
+      - name: Build de producción
+        run: npx ng build --configuration production

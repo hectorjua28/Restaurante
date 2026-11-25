@@ -1,0 +1,150 @@
+<app-header title="Comanda" />
+
+<ion-content class="ion-padding">
+  @if (draft.tableId() === null) {
+    <div class="empty-state">
+      <ion-icon name="grid-outline"></ion-icon>
+      <p>Primero elige la mesa a la que vas a tomar la orden.</p>
+      <ion-button color="secondary" (click)="goToTables()" data-testid="choose-table">Elegir mesa</ion-button>
+    </div>
+  } @else {
+    <div class="table-bar card">
+      <div>
+        <span class="muted">Mesa</span>
+        <strong data-testid="selected-table">{{ draft.tableNumber() }}</strong>
+      </div>
+      <ion-button fill="outline" color="secondary" (click)="goToTables()">
+        <ion-icon slot="start" name="swap-horizontal-outline"></ion-icon>
+        Cambiar
+      </ion-button>
+    </div>
+
+    <ion-segment [value]="view()" (ionChange)="setView($event.detail.value)">
+      <ion-segment-button value="menu"><ion-label>Menú</ion-label></ion-segment-button>
+      <ion-segment-button value="comanda" data-testid="view-comanda">
+        <ion-label>Mi comanda ({{ draft.itemCount() }})</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+
+    @if (view() === 'menu') {
+      <ion-searchbar
+        placeholder="Buscar platillo"
+        [value]="search()"
+        (ionInput)="search.set($event.detail.value ?? '')"
+        [debounce]="150"
+        data-testid="search"
+      ></ion-searchbar>
+
+      <div class="chips">
+        <ion-chip [outline]="categoryId() !== null" (click)="categoryId.set(null)">Todas</ion-chip>
+        @for (c of catalog.categories(); track c.id) {
+          <ion-chip [outline]="categoryId() !== c.id" (click)="categoryId.set(c.id)">{{ c.name }}</ion-chip>
+        }
+      </div>
+
+      @if (loadError() && !catalog.hasData()) {
+        <div class="empty-state">
+          <p>{{ loadError() }}</p>
+          <ion-button color="secondary" (click)="loadCatalog()">Reintentar</ion-button>
+        </div>
+      } @else if (!catalog.hasData()) {
+        <div class="empty-state"><ion-spinner name="crescent"></ion-spinner></div>
+      } @else if (filtered().length === 0) {
+        <div class="empty-state"><p>No hay platillos que coincidan.</p></div>
+      } @else {
+        <div class="products">
+          @for (p of filtered(); track p.id) {
+            <button
+              type="button"
+              class="product card"
+              [class.sold-out]="!p.available"
+              [disabled]="!p.available"
+              (click)="openProduct(p)"
+              [attr.data-testid]="'product-' + p.id"
+              [attr.aria-label]="p.name + (p.available ? '' : ', agotado')"
+            >
+              <div class="info">
+                <strong>{{ p.name }}</strong>
+                @if (p.description) {
+                  <span class="muted desc">{{ p.description }}</span>
+                }
+              </div>
+              <div class="side">
+                @if (p.available) {
+                  <span class="price">{{ p.price_cents | money }}</span>
+                  <ion-icon name="add-outline" class="add" aria-hidden="true"></ion-icon>
+                } @else {
+                  <span class="status-badge st-cancelada">Agotado</span>
+                }
+              </div>
+            </button>
+          }
+        </div>
+      }
+    } @else {
+      @if (draft.isEmpty()) {
+        <div class="empty-state">
+          <ion-icon name="restaurant-outline"></ion-icon>
+          <p>La comanda está vacía. Agrega platillos desde el menú.</p>
+        </div>
+      } @else {
+        <div class="lines">
+          @for (line of draft.lines(); track line.uid) {
+            <div class="line card" [attr.data-testid]="'line-' + line.productId">
+              <div class="line-head">
+                <strong>{{ line.name }}</strong>
+                <span>{{ unitCents(line) * line.quantity | money }}</span>
+              </div>
+              @if (line.modifiers.length > 0) {
+                <div class="muted small">{{ modifierNames(line) }}</div>
+              }
+              @if (line.note) {
+                <div class="note">
+                  <ion-icon name="chatbubble-ellipses-outline" aria-hidden="true"></ion-icon>
+                  {{ line.note }}
+                </div>
+              }
+              <div class="line-actions">
+                <span class="muted small">{{ unitCents(line) | money }} c/u</span>
+                <div class="stepper">
+                  <ion-button fill="outline" color="secondary" aria-label="Menos" (click)="changeQty(line, -1)">
+                    <ion-icon slot="icon-only" name="remove-outline"></ion-icon>
+                  </ion-button>
+                  <strong>{{ line.quantity }}</strong>
+                  <ion-button fill="outline" color="secondary" aria-label="Más" (click)="changeQty(line, 1)">
+                    <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+                  </ion-button>
+                  <ion-button fill="clear" color="danger" aria-label="Quitar" (click)="remove(line)">
+                    <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                  </ion-button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+  }
+</ion-content>
+
+@if (draft.tableId() !== null) {
+  <ion-footer class="footer">
+    <div class="total">
+      <span class="muted">Total parcial</span>
+      <strong data-testid="draft-total">{{ draft.totalCents() | money }}</strong>
+    </div>
+    <ion-button
+      class="button-large"
+      [disabled]="draft.isEmpty() || sending()"
+      (click)="confirmSend()"
+      data-testid="send-order"
+    >
+      @if (sending()) {
+        <ion-spinner name="crescent"></ion-spinner>
+      } @else {
+        <ion-icon slot="start" name="send-outline"></ion-icon>
+        Enviar a cocina
+      }
+    </ion-button>
+  </ion-footer>
+}
