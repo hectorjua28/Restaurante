@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Actions\Tables\RefreshTableStatus;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\Role;
-use App\Enums\TableStatus;
 use App\Models\CashClosing;
 use App\Models\DiningTable;
 use App\Models\Order;
@@ -92,7 +92,7 @@ class SampleOrderSeeder extends Seeder
                 $by = $step === OrderStatus::Entregada ? $order->waiter : $kitchen;
                 $this->transition($order, $step, $by, $t = $t->addMinutes(max(1, intdiv($minutesAgo, 4))));
             }
-            $table->update(['status' => TableStatus::Ocupada]);
+            app(RefreshTableStatus::class)->handle($table->id);
         }
     }
 

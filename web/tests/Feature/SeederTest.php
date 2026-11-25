@@ -49,11 +49,11 @@ it('crea órdenes de días anteriores con historial y pagos consistentes', funct
 });
 
 it('deja órdenes activas hoy con sus mesas ocupadas', function () {
-    $active = Order::whereIn('status', OrderStatus::active())->get();
+    $active = Order::whereIn('status', OrderStatus::active())->with('diningTable')->get();
 
     expect($active)->not->toBeEmpty();
     foreach ($active as $order) {
-        expect($order->diningTable->status->value)->toBe('ocupada');
+        expect($order->diningTable->status->value)->toBeIn(['ocupada', 'por_cobrar']);
     }
 });
 

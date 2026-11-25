@@ -7,6 +7,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -23,6 +24,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => EnsureRole::class,
             'active' => EnsureUserIsActive::class,
         ]);
+        // Validar rol y usuario activo ANTES de resolver los modelos de la ruta: 403 en lugar de 404.
+        $middleware->prependToPriorityList(before: SubstituteBindings::class, prepend: EnsureUserIsActive::class);
+        $middleware->prependToPriorityList(before: SubstituteBindings::class, prepend: EnsureRole::class);
         $middleware->redirectGuestsTo(fn () => route('login'));
         $middleware->redirectUsersTo(fn (Request $request) => route($request->user()?->role->homeRoute() ?? 'login'));
     })
