@@ -81,3 +81,14 @@ it('invalida el token de un usuario desactivado', function () {
 
     expect($user->tokens()->count())->toBe(0);
 });
+
+it('el token de la app caduca a los 30 días', function () {
+    $user = waiter();
+    $token = $user->createToken('app')->plainTextToken;
+
+    $this->withToken($token)->getJson('/api/v1/auth/me')->assertOk();
+
+    $this->travel(31)->days();
+    app('auth')->forgetGuards();
+    $this->withToken($token)->getJson('/api/v1/auth/me')->assertUnauthorized();
+});

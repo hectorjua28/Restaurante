@@ -132,3 +132,53 @@ jobs:
           name: pinguin-meseros-debug-apk
           path: mobile/android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 14
+
+  e2e:
+    name: Extremo a extremo (Playwright)
+    runs-on: ubuntu-latest
+    needs: [web, mobile]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo_sqlite, zip
+          coverage: none
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Preparar Laravel
+        working-directory: web
+        run: |
+          composer install --no-interaction --prefer-dist --no-progress
+          npm ci
+          npm run build
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Compilar la PWA dentro de Laravel (/app)
+        working-directory: mobile
+        run: |
+          npm ci
+          npm run build:pwa
+
+      - name: Instalar Playwright
+        working-directory: e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Flujo completo mesero → cocina → cobro
+        working-directory: e2e
+        run: npm test
+
+      - name: Reporte de Playwright
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reporte-playwright
+          path: e2e/playwright-report
+          retention-days: 7
