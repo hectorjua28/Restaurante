@@ -1,0 +1,191 @@
+<app-header title="Cobro" />
+
+<ion-content class="ion-padding">
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+    <ion-refresher-content pullingText="Desliza para actualizar" refreshingText="Actualizando…"></ion-refresher-content>
+  </ion-refresher>
+
+  @if (selectedId() === null) {
+    <h2 class="section-title">Elige una mesa ocupada</h2>
+
+    @if (!tablesLoaded()) {
+      <div class="empty-state"><ion-spinner name="crescent"></ion-spinner></div>
+    } @else if (tablesError() && tables().length === 0) {
+      <div class="empty-state">
+        <p>{{ tablesError() }}</p>
+        <ion-button color="secondary" (click)="loadTables()">Reintentar</ion-button>
+      </div>
+    } @else if (tables().length === 0) {
+      <div class="empty-state">
+        <ion-icon name="wallet-outline"></ion-icon>
+        <p>No hay mesas ocupadas por cobrar.</p>
+      </div>
+    } @else {
+      <div class="tables">
+        @for (t of tables(); track t.id) {
+          <button
+            type="button"
+            [class]="'table card st-' + t.status"
+            (click)="select(t.id)"
+            [attr.data-testid]="'checkout-table-' + t.number"
+          >
+            <span class="number">Mesa {{ t.number }}</span>
+            <span class="status-badge" [class]="'status-badge st-' + t.status">{{ t.status_label }}</span>
+            <span class="total">{{ t.active_total_cents | money }}</span>
+          </button>
+        }
+      </div>
+    }
+  } @else {
+    <ion-button fill="clear" color="secondary" (click)="back()">
+      <ion-icon slot="start" name="arrow-back-outline"></ion-icon>
+      Otras mesas
+    </ion-button>
+
+    @if (billError() && !bill()) {
+      <div class="empty-state">
+        <p>{{ billError() }}</p>
+        <ion-button color="secondary" (click)="loadBill()">Reintentar</ion-button>
+      </div>
+    } @else if (!bill()) {
+      <div class="empty-state"><ion-spinner name="crescent"></ion-spinner></div>
+    } @else {
+      @let b = bill()!;
+      <section class="card bill">
+        <header>
+          <h2>Mesa {{ b.table.number }}</h2>
+          <span class="muted">{{ b.orders.length }} {{ b.orders.length === 1 ? 'orden' : 'órdenes' }}</span>
+        </header>
+
+        @for (order of b.orders; track order.id) {
+          <div class="bill-order">
+            <div class="bill-order-head">
+              <span>#{{ order.id }} · {{ order.created_at | localTime }} · {{ order.waiter.name }}</span>
+              <span class="status-badge" [class]="'status-badge st-' + order.status">{{ order.status_label }}</span>
+            </div>
+            @for (item of order.items; track item.id) {
+              <div class="bill-line">
+                <span>{{ item.quantity }}× {{ item.name }}</span>
+                <span>{{ item.subtotal_cents | money }}</span>
+              </div>
+            }
+          </div>
+        }
+
+        <div class="bill-total">
+          <span>Total</span>
+          <strong data-testid="bill-total">{{ b.total_cents | money }}</strong>
+        </div>
+      </section>
+
+      @if (!b.can_charge) {
+        <p class="blocking" role="alert" data-testid="bill-blocking">{{ b.blocking_reason }}</p>
+      } @else {
+        <h2 class="section-title">Forma de pago</h2>
+
+        @for (line of lines(); track line.uid; let i = $index) {
+          <section class="card payment" [attr.data-testid]="'payment-' + i">
+            <div class="payment-head">
+              <strong>{{ lines().length > 1 ? 'Pago ' + (i + 1) : 'Pago' }}</strong>
+              @if (lines().length > 1) {
+                <ion-button
+                  fill="clear"
+                  color="danger"
+                  size="small"
+                  aria-label="Quitar pago"
+                  (click)="removeLine(line.uid)"
+                >
+                  <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                </ion-button>
+              }
+            </div>
+
+            <ion-segment [value]="line.method" (ionChange)="setMethod(line.uid, $event.detail.value)">
+              @for (m of methods; track m[0]) {
+                <ion-segment-button [value]="m[0]" [attr.data-testid]="'method-' + m[0] + '-' + i">
+                  <ion-label>{{ m[1] }}</ion-label>
+                </ion-segment-button>
+              }
+            </ion-segment>
+
+            <div class="fields">
+              <ion-input
+                label="Monto"
+                labelPlacement="stacked"
+                fill="outline"
+                inputmode="decimal"
+                [value]="line.amount"
+                (ionInput)="updateLine(line.uid, { amount: $event.detail.value ?? '' })"
+                [attr.data-testid]="'amount-' + i"
+              ></ion-input>
+              <ion-input
+                label="Propina"
+                labelPlacement="stacked"
+                fill="outline"
+                inputmode="decimal"
+                placeholder="0.00"
+                [value]="line.tip"
+                (ionInput)="updateLine(line.uid, { tip: $event.detail.value ?? '' })"
+                [attr.data-testid]="'tip-' + i"
+              ></ion-input>
+            </div>
+
+            @if (line.method === 'efectivo') {
+              <div class="fields">
+                <ion-input
+                  label="Recibido (opcional)"
+                  labelPlacement="stacked"
+                  fill="outline"
+                  inputmode="decimal"
+                  [value]="line.received"
+                  (ionInput)="updateLine(line.uid, { received: $event.detail.value ?? '' })"
+                ></ion-input>
+                <div class="change">
+                  <span class="muted">Cambio</span>
+                  <strong>{{ change(line) === null ? '—' : (change(line) | money) }}</strong>
+                </div>
+              </div>
+            }
+          </section>
+        }
+
+        <ion-button expand="block" fill="outline" color="secondary" (click)="addLine()" data-testid="add-payment">
+          <ion-icon slot="start" name="add-outline"></ion-icon>
+          Dividir la cuenta (agregar otro pago)
+        </ion-button>
+      }
+    }
+  }
+</ion-content>
+
+@if (bill()?.can_charge && selectedId() !== null) {
+  <ion-footer class="footer">
+    <div class="summary">
+      @if (summary().problem) {
+        <span class="problem" data-testid="payment-problem">{{ summary().problem }}</span>
+      } @else {
+        <span class="ok">Pagos completos</span>
+      }
+      <span class="muted">
+        Pagado {{ summary().paidCents | money }}
+        @if (summary().tipCents > 0) {
+          · Propina {{ summary().tipCents | money }}
+        }
+      </span>
+    </div>
+    <ion-button
+      class="button-large"
+      color="success"
+      [disabled]="!summary().valid || charging()"
+      (click)="confirmCharge()"
+      data-testid="confirm-charge"
+    >
+      @if (charging()) {
+        <ion-spinner name="crescent"></ion-spinner>
+      } @else {
+        <ion-icon slot="start" name="cash-outline"></ion-icon>
+        Cobrar
+      }
+    </ion-button>
+  </ion-footer>
+}

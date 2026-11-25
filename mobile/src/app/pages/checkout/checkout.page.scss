@@ -1,0 +1,146 @@
+.section-title {
+  margin: 8px 0 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.tables {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.table {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 110px;
+  padding: 12px;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  border-left: 6px solid var(--st-ocupada);
+
+  &.st-por_cobrar {
+    border-left-color: var(--st-por-cobrar);
+  }
+
+  .number {
+    font-size: 1.3rem;
+    font-weight: 800;
+  }
+
+  .total {
+    font-weight: 700;
+  }
+}
+
+.bill {
+  padding: 14px;
+  margin-bottom: 12px;
+
+  header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+
+    h2 {
+      margin: 0;
+      font-size: 1.4rem;
+      font-weight: 800;
+    }
+  }
+}
+
+.bill-order {
+  padding: 10px 0;
+  border-bottom: 1px dashed rgba(46, 59, 68, 0.15);
+}
+
+.bill-order-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-size: 0.85rem;
+  color: rgba(46, 59, 68, 0.7);
+}
+
+.bill-line,
+.bill-total {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.bill-total {
+  margin-top: 10px;
+  font-size: 1.2rem;
+
+  strong {
+    font-size: 1.5rem;
+  }
+}
+
+.blocking {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(232, 197, 49, 0.25);
+  font-weight: 700;
+}
+
+.payment {
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.payment-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 36px;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.change {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  strong {
+    font-size: 1.2rem;
+  }
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px calc(10px + var(--ion-safe-area-bottom, 0px));
+  background: #fff;
+  box-shadow: 0 -2px 8px rgba(46, 59, 68, 0.08);
+
+  .summary {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    font-size: 0.9rem;
+  }
+
+  .problem {
+    color: var(--pinguin-rojo);
+    font-weight: 700;
+  }
+
+  .ok {
+    color: var(--st-lista);
+    font-weight: 700;
+  }
+}

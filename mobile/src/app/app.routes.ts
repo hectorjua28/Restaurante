@@ -21,6 +21,14 @@ export const routes: Routes = [
         path: 'comanda',
         loadComponent: () => import('./pages/order/order.page').then((m) => m.OrderPage),
       },
+      {
+        path: 'ordenes',
+        loadComponent: () => import('./pages/orders/orders.page').then((m) => m.OrdersPage),
+      },
+      {
+        path: 'cobro',
+        loadComponent: () => import('./pages/checkout/checkout.page').then((m) => m.CheckoutPage),
+      },
       { path: '', redirectTo: 'mesas', pathMatch: 'full' },
     ],
   },

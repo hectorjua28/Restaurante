@@ -1,0 +1,119 @@
+<app-header title="Mis órdenes" />
+
+<ion-content class="ion-padding">
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+    <ion-refresher-content pullingText="Desliza para actualizar" refreshingText="Actualizando…"></ion-refresher-content>
+  </ion-refresher>
+
+  @if (myOrders.readyCount() > 0) {
+    <div class="ready-alert" role="status" data-testid="ready-alert">
+      <ion-icon name="notifications-outline" aria-hidden="true"></ion-icon>
+      {{ myOrders.readyCount() === 1 ? 'Tienes 1 orden lista' : 'Tienes ' + myOrders.readyCount() + ' órdenes listas' }}
+      para entregar
+    </div>
+  }
+
+  <ion-segment [value]="filter()" (ionChange)="setFilter($event.detail.value)" scrollable>
+    <ion-segment-button value="todas"><ion-label>Todas</ion-label></ion-segment-button>
+    <ion-segment-button value="lista"
+      ><ion-label>Listas ({{ counts().lista }})</ion-label></ion-segment-button
+    >
+    <ion-segment-button value="pendiente"
+      ><ion-label>Pendientes ({{ counts().pendiente }})</ion-label></ion-segment-button
+    >
+    <ion-segment-button value="en_preparacion">
+      <ion-label>En preparación ({{ counts().en_preparacion }})</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="entregada"
+      ><ion-label>Entregadas ({{ counts().entregada }})</ion-label></ion-segment-button
+    >
+  </ion-segment>
+
+  @if (!myOrders.loaded()) {
+    <div class="empty-state"><ion-spinner name="crescent"></ion-spinner></div>
+  } @else if (visible().length === 0) {
+    <div class="empty-state">
+      <ion-icon name="receipt-outline"></ion-icon>
+      <p>{{ filter() === 'todas' ? 'No tienes órdenes activas.' : 'No hay órdenes con este estado.' }}</p>
+    </div>
+  } @else {
+    <div class="list">
+      @for (order of visible(); track order.id) {
+        <article
+          class="order card"
+          [class.is-ready]="order.status === 'lista'"
+          [attr.data-testid]="'order-' + order.id"
+        >
+          <header>
+            <div>
+              <strong class="table">Mesa {{ order.table.number }}</strong>
+              <span class="muted"
+                >#{{ order.id }} · {{ order.created_at | localTime }} · {{ order.created_at | elapsed }}</span
+              >
+            </div>
+            <span class="status-badge" [class]="'status-badge st-' + order.status">{{ order.status_label }}</span>
+          </header>
+
+          <ul>
+            @for (item of order.items; track item.id) {
+              <li>
+                <span class="qty">{{ item.quantity }}×</span>
+                <div>
+                  <span>{{ item.name }}</span>
+                  @if (item.modifiers.length > 0) {
+                    <div class="muted small">{{ modifierNames(item.modifiers) }}</div>
+                  }
+                  @if (item.note) {
+                    <div class="note">
+                      <ion-icon name="chatbubble-ellipses-outline" aria-hidden="true"></ion-icon>{{ item.note }}
+                    </div>
+                  }
+                </div>
+              </li>
+            }
+          </ul>
+
+          <footer>
+            <strong>{{ order.total_cents | money }}</strong>
+            <div class="actions">
+              @switch (order.status) {
+                @case ('lista') {
+                  <ion-button
+                    color="success"
+                    [disabled]="busyId() === order.id"
+                    (click)="deliver(order)"
+                    [attr.data-testid]="'deliver-' + order.id"
+                  >
+                    <ion-icon slot="start" name="checkmark-done-outline"></ion-icon>
+                    Marcar entregada
+                  </ion-button>
+                }
+                @case ('pendiente') {
+                  <ion-button
+                    color="danger"
+                    fill="outline"
+                    [disabled]="busyId() === order.id"
+                    (click)="askCancel(order)"
+                    [attr.data-testid]="'cancel-' + order.id"
+                  >
+                    <ion-icon slot="start" name="close-circle-outline"></ion-icon>
+                    Cancelar
+                  </ion-button>
+                }
+                @case ('entregada') {
+                  <ion-button color="secondary" (click)="goToCheckout(order)" [attr.data-testid]="'charge-' + order.id">
+                    <ion-icon slot="start" name="wallet-outline"></ion-icon>
+                    Cobrar mesa
+                  </ion-button>
+                }
+                @default {
+                  <span class="muted small">Cocina la está preparando</span>
+                }
+              }
+            </div>
+          </footer>
+        </article>
+      }
+    </div>
+  }
+</ion-content>
