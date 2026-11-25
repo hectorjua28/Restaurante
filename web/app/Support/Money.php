@@ -16,6 +16,15 @@ final class Money
         return $sign.'$'.number_format(intdiv($abs, 100)).'.'.str_pad((string) ($abs % 100), 2, '0', STR_PAD_LEFT);
     }
 
+    /** 12345 → "123.45" (para rellenar campos de captura). */
+    public static function toPesosString(int $cents): string
+    {
+        $sign = $cents < 0 ? '-' : '';
+        $abs = abs($cents);
+
+        return $sign.intdiv($abs, 100).'.'.str_pad((string) ($abs % 100), 2, '0', STR_PAD_LEFT);
+    }
+
     /** Convierte "123.45" a 12345 sin pasar por float. */
     public static function toCents(string|int $amount): int
     {

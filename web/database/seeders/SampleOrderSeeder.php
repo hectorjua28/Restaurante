@@ -52,8 +52,8 @@ class SampleOrderSeeder extends Seeder
                 $order = $this->makeOrder($tables->random(), $waiters->random(), $products, $createdAt);
 
                 if ($cancel) {
+                    $order->cancel_reason = 'El cliente cambió de opinión';
                     $this->transition($order, OrderStatus::Cancelada, $order->waiter, $createdAt->addMinutes(mt_rand(1, 4)));
-                    $order->update(['cancel_reason' => 'El cliente cambió de opinión']);
 
                     continue;
                 }
