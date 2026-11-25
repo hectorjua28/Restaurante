@@ -194,7 +194,9 @@ export class ProductOptionsComponent {
   note = '';
 
   readonly total = computed(
-    () => ((this.productSig()?.price_cents ?? 0) + this.selected().reduce((s, m) => s + m.price_delta_cents, 0)) * this.quantity(),
+    () =>
+      ((this.productSig()?.price_cents ?? 0) + this.selected().reduce((s, m) => s + m.price_delta_cents, 0)) *
+      this.quantity(),
   );
 
   constructor() {
