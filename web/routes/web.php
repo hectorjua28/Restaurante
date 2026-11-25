@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Auth\WebAuthController;
+use App\Livewire\Kitchen\Availability;
+use App\Livewire\Kitchen\Board;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login');
@@ -14,7 +16,8 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::post('/logout', [WebAuthController::class, 'destroy'])->name('logout');
 
     Route::middleware('role:cocina,admin')->prefix('cocina')->name('kitchen.')->group(function () {
-        Route::view('/', 'kitchen.board')->name('board');
+        Route::get('/', Board::class)->name('board');
+        Route::get('/agotados', Availability::class)->name('availability');
     });
 
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {

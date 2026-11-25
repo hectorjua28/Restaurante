@@ -33,6 +33,12 @@
         </div>
     </header>
 
+    {{-- Aviso de "sin conexión": se muestra si el polling deja de recibir respuestas del servidor. --}}
+    <div id="offline-banner" role="status" aria-live="polite" hidden
+        class="sticky top-0 z-50 bg-salida px-4 py-2 text-center font-semibold text-white">
+        Sin conexión con el servidor. Reintentando…
+    </div>
+
     <main class="mx-auto max-w-7xl px-4 py-6">
         {{ $slot }}
     </main>
