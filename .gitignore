@@ -1,0 +1,14 @@
+# Sistema operativo y editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Claude Code (configuración local)
+.claude/settings.local.json
+
+# Playwright
+/e2e/node_modules/
+/e2e/test-results/
+/e2e/playwright-report/
