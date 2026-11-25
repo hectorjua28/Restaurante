@@ -7,6 +7,9 @@
         ['route' => 'admin.categories', 'match' => 'admin.categories', 'label' => 'Categorías'],
         ['route' => 'admin.tables', 'match' => 'admin.tables', 'label' => 'Mesas'],
         ['route' => 'admin.users', 'match' => 'admin.users', 'label' => 'Usuarios'],
+        ['route' => 'admin.cash', 'match' => 'admin.cash', 'label' => 'Corte de caja'],
+        ['route' => 'admin.reports', 'match' => 'admin.reports*', 'label' => 'Reportes'],
+        ['route' => 'admin.audit', 'match' => 'admin.audit', 'label' => 'Bitácora'],
     ];
 @endphp
 

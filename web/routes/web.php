@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ReportCsvController;
 use App\Http\Controllers\Auth\WebAuthController;
 use App\Livewire\Admin;
 use App\Livewire\Kitchen\Availability;
@@ -34,5 +35,9 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('/categorias', Admin\Categories::class)->name('categories');
         Route::get('/mesas', Admin\Tables::class)->name('tables');
         Route::get('/usuarios', Admin\Users::class)->name('users');
+        Route::get('/corte-caja', Admin\CashClosings::class)->name('cash');
+        Route::get('/reportes', Admin\Reports::class)->name('reports');
+        Route::get('/reportes/{tipo}.csv', ReportCsvController::class)->name('reports.csv');
+        Route::get('/bitacora', Admin\AuditLogs::class)->name('audit');
     });
 });

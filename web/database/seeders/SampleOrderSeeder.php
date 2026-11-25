@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Actions\Cash\CashSummary;
 use App\Actions\Tables\RefreshTableStatus;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
@@ -178,22 +179,22 @@ class SampleOrderSeeder extends Seeder
     /** @param Collection<int, Payment> $payments */
     private function closeCash(Collection $payments, User $admin, CarbonImmutable $at): void
     {
-        $sum = fn (PaymentMethod $m) => $payments->where('method', $m)->sum(fn (Payment $p) => $p->amount_cents + $p->tip_cents);
-        $cash = $sum(PaymentMethod::Efectivo);
-        $counted = $cash + [0, 0, -2000, 1000][mt_rand(0, 3)];
-        $previous = CashClosing::latest('period_end')->first();
+        // Mismas reglas que el corte real (CashSummary): esperado = ventas + propinas en efectivo.
+        $totals = CashSummary::summarize($payments, CashClosing::max('period_end'));
+        $expected = $totals['expected_cash_cents'];
+        $counted = max(0, $expected + [0, 0, -2000, 1000][mt_rand(0, 3)]);
 
         $closing = CashClosing::create([
             'user_id' => $admin->id,
-            'period_start' => $previous?->period_end,
+            'period_start' => $totals['period_start'],
             'period_end' => $at,
-            'cash_cents' => $cash,
-            'card_cents' => $sum(PaymentMethod::Tarjeta),
-            'transfer_cents' => $sum(PaymentMethod::Transferencia),
-            'tips_cents' => $payments->sum('tip_cents'),
-            'expected_cash_cents' => $cash,
-            'counted_cash_cents' => max(0, $counted),
-            'difference_cents' => max(0, $counted) - $cash,
+            'cash_cents' => $totals['cash_cents'],
+            'card_cents' => $totals['card_cents'],
+            'transfer_cents' => $totals['transfer_cents'],
+            'tips_cents' => $totals['tips_cents'],
+            'expected_cash_cents' => $expected,
+            'counted_cash_cents' => $counted,
+            'difference_cents' => $counted - $expected,
         ]);
 
         Payment::whereIn('id', $payments->pluck('id'))->update(['cash_closing_id' => $closing->id]);
