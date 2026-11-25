@@ -14,7 +14,10 @@
     "prettier": "prettier \"src/**/*.{ts,html,scss}\"",
     "test": "npm run test:unit",
     "test:unit": "ng test --no-watch",
-    "test:unit:watch": "ng test --watch"
+    "test:unit:watch": "ng test --watch",
+    "build:pwa": "node scripts/build-pwa.mjs",
+    "build:android": "ng build --configuration production && npx cap sync android",
+    "icons": "php scripts/generate-icons.php"
   },
   "private": true,
   "dependencies": {
@@ -24,6 +27,8 @@
     "@angular/forms": "22.3.0",
     "@angular/platform-browser": "22.3.0",
     "@angular/router": "22.3.0",
+    "@angular/service-worker": "22.3.0",
+    "@capacitor/android": "^8.6.2",
     "@capacitor/app": "8.1.2",
     "@capacitor/core": "8.6.2",
     "@capacitor/haptics": "8.0.2",
@@ -46,6 +51,7 @@
     "@types/node": "^26.6.6",
     "angular-eslint": "22.6.0",
     "eslint": "^10.10.0",
+    "fake-indexeddb": "^6.2.8",
     "jsdom": "^31.0.0",
     "prettier": "^3.9.10",
     "typescript": "~6.0.0",

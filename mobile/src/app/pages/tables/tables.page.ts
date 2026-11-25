@@ -22,6 +22,7 @@ import { errorMessage } from '../../core/api-error';
 import { ApiService } from '../../core/api.service';
 import type { DiningTable, TableCounts, TableStatus } from '../../core/models';
 import { OrderDraftService } from '../../core/order-draft.service';
+import { StorageService } from '../../core/storage.service';
 import { AppHeaderComponent } from '../../shared/app-header.component';
 import { MoneyPipe } from '../../shared/pipes';
 import { Poller } from '../../shared/polling';
@@ -52,10 +53,14 @@ export class TablesPage implements OnDestroy {
   private readonly alerts = inject(AlertController);
   readonly draft = inject(OrderDraftService);
 
-  readonly tables = signal<DiningTable[]>([]);
-  readonly counts = signal<TableCounts>({ total: 0, libre: 0, ocupada: 0, por_cobrar: 0 });
+  private readonly storage = inject(StorageService);
+  private readonly cached = this.storage.get<{ data: DiningTable[]; counts: TableCounts } | null>('tables', null);
+
+  // Se arranca con la última copia guardada para poder elegir mesa aunque no haya señal.
+  readonly tables = signal<DiningTable[]>(this.cached?.data ?? []);
+  readonly counts = signal<TableCounts>(this.cached?.counts ?? { total: 0, libre: 0, ocupada: 0, por_cobrar: 0 });
   readonly filter = signal<Filter>('todas');
-  readonly loaded = signal(false);
+  readonly loaded = signal(this.cached !== null);
   readonly error = signal('');
 
   readonly visible = computed(() => {
@@ -86,6 +91,7 @@ export class TablesPage implements OnDestroy {
       const response = await firstValueFrom(this.api.getTables());
       this.tables.set(response.data);
       this.counts.set(response.meta.counts);
+      this.storage.set('tables', { data: response.data, counts: response.meta.counts });
       this.error.set('');
     } catch (e) {
       this.error.set(errorMessage(e));

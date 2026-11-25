@@ -95,3 +95,40 @@ jobs:
 
       - name: Build de producción
         run: npx ng build --configuration production
+
+  android:
+    name: APK de Android (Capacitor)
+    runs-on: ubuntu-latest
+    needs: mobile
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Compilar la app y sincronizar Android
+        run: |
+          npm ci
+          npm run build:android
+
+      - name: Compilar APK de depuración
+        working-directory: mobile/android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Publicar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: pinguin-meseros-debug-apk
+          path: mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14

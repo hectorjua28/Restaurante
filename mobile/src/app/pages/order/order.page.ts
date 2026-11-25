@@ -29,10 +29,11 @@ import {
 } from 'ionicons/icons';
 import { firstValueFrom } from 'rxjs';
 
-import { errorMessage } from '../../core/api-error';
+import { errorMessage, isNetworkError } from '../../core/api-error';
 import { ApiService } from '../../core/api.service';
 import { CatalogService } from '../../core/catalog.service';
-import type { Product } from '../../core/models';
+import type { NewOrderPayload, Product } from '../../core/models';
+import { OfflineQueueService } from '../../core/offline-queue.service';
 import { OrderDraftService, lineUnitCents } from '../../core/order-draft.service';
 import type { DraftLine } from '../../core/order-draft.service';
 import { AppHeaderComponent } from '../../shared/app-header.component';
@@ -71,6 +72,7 @@ export class OrderPage implements OnDestroy {
   private readonly toasts = inject(ToastController);
   readonly catalog = inject(CatalogService);
   readonly draft = inject(OrderDraftService);
+  private readonly queue = inject(OfflineQueueService);
 
   readonly view = signal<View>('menu');
   readonly search = signal('');
@@ -178,14 +180,31 @@ export class OrderPage implements OnDestroy {
   async send(): Promise<void> {
     if (this.sending()) return;
     this.sending.set(true);
+    let payload: NewOrderPayload;
     try {
-      const payload = this.draft.toPayload();
+      payload = this.draft.toPayload();
+    } catch (e) {
+      this.sending.set(false);
+      await this.toast(errorMessage(e), 'danger');
+      return;
+    }
+
+    try {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        await this.saveOffline(payload);
+        return;
+      }
       const order = await firstValueFrom(this.api.createOrder(payload));
       this.draft.clear();
       this.view.set('menu');
       await this.toast(`Comanda #${order.id} enviada a cocina (mesa ${order.table.number}).`, 'success');
       await this.router.navigateByUrl('/tabs/mesas');
     } catch (e) {
+      if (isNetworkError(e)) {
+        // Sin señal: se guarda en el teléfono con la misma clave y se envía sola al volver la red.
+        await this.saveOffline(payload);
+        return;
+      }
       await this.toast(errorMessage(e), 'danger', 4000);
       // Si un platillo se agotó mientras tanto, refrescamos el menú.
       void this.loadCatalog();
@@ -194,7 +213,29 @@ export class OrderPage implements OnDestroy {
     }
   }
 
-  private async toast(message: string, color: 'success' | 'danger', duration = 2500): Promise<void> {
+  private async saveOffline(payload: NewOrderPayload): Promise<void> {
+    try {
+      await this.queue.enqueue(payload, {
+        tableNumber: this.draft.tableNumber() ?? 0,
+        itemCount: this.draft.itemCount(),
+        totalCents: this.draft.totalCents(),
+      });
+    } catch (e) {
+      await this.toast(errorMessage(e), 'danger', 4000);
+      return;
+    }
+    const table = this.draft.tableNumber();
+    this.draft.clear();
+    this.view.set('menu');
+    await this.toast(
+      `Sin conexión: la comanda de la mesa ${table} se guardó en el teléfono y se enviará sola al volver la señal.`,
+      'warning',
+      5000,
+    );
+    await this.router.navigateByUrl('/tabs/mesas');
+  }
+
+  private async toast(message: string, color: 'success' | 'danger' | 'warning', duration = 2500): Promise<void> {
     const t = await this.toasts.create({ message, color, duration, position: 'top' });
     await t.present();
   }

@@ -25,10 +25,10 @@ export class LoginPage {
 
   email = '';
   password = '';
-  serverUrl = this.config.baseUrl();
+  serverUrl = this.config.needsServer() ? '' : this.config.baseUrl();
   readonly loading = signal(false);
   readonly error = signal('');
-  readonly showServer = signal(this.config.isCustom());
+  readonly showServer = signal(this.config.isCustom() || this.config.needsServer());
 
   constructor() {
     addIcons({ serverOutline });
@@ -41,8 +41,14 @@ export class LoginPage {
       return;
     }
 
-    if (this.showServer()) {
-      this.config.setBaseUrl(this.serverUrl);
+    if (this.showServer() || this.config.needsServer()) {
+      const problem = this.config.setBaseUrl(this.serverUrl);
+      if (problem) {
+        this.error.set(problem);
+        this.showServer.set(true);
+        return;
+      }
+      this.serverUrl = this.config.baseUrl();
     }
 
     this.loading.set(true);
@@ -58,6 +64,7 @@ export class LoginPage {
   }
 
   toggleServer(): void {
+    if (this.config.needsServer()) return;
     this.showServer.update((v) => !v);
     this.serverUrl = this.config.baseUrl();
   }

@@ -8,6 +8,7 @@ import { gridOutline, receiptOutline, restaurantOutline, walletOutline } from 'i
 
 import type { Order } from '../../core/models';
 import { MyOrdersService } from '../../core/my-orders.service';
+import { OfflineQueueService } from '../../core/offline-queue.service';
 import { OrderDraftService } from '../../core/order-draft.service';
 
 @Component({
@@ -56,15 +57,33 @@ export class TabsPage {
   readonly myOrders = inject(MyOrdersService);
   private readonly toasts = inject(ToastController);
   private readonly router = inject(Router);
+  private readonly queue = inject(OfflineQueueService);
 
   constructor() {
     addIcons({ gridOutline, restaurantOutline, receiptOutline, walletOutline });
 
     // Las órdenes del mesero se vigilan en todas las pestañas para avisar cuando una esté lista.
     this.myOrders.start();
-    inject(DestroyRef).onDestroy(() => this.myOrders.stop());
+    // Bandeja de comandas guardadas sin conexión: se envían solas al volver la señal.
+    void this.queue.start();
+    inject(DestroyRef).onDestroy(() => {
+      this.myOrders.stop();
+      this.queue.stop();
+    });
 
     this.myOrders.becameReady$.pipe(takeUntilDestroyed()).subscribe((order) => void this.notifyReady(order));
+    this.queue.sent$.pipe(takeUntilDestroyed()).subscribe((order) => void this.notifySent(order));
+  }
+
+  private async notifySent(order: Order): Promise<void> {
+    void this.myOrders.refresh().catch(() => undefined);
+    const toast = await this.toasts.create({
+      message: `Se envió la comanda guardada de la mesa ${order.table.number} (#${order.id}).`,
+      color: 'success',
+      position: 'top',
+      duration: 3500,
+    });
+    await toast.present();
   }
 
   private async notifyReady(order: Order): Promise<void> {

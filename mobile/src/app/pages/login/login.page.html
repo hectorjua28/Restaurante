@@ -44,7 +44,8 @@
           type="url"
           inputmode="url"
           name="server"
-          helperText="Ejemplo: http://192.168.1.50:8000/api/v1"
+          placeholder="https://tu-dominio.com/api/v1"
+          helperText="Ejemplo: https://tu-dominio.com o http://192.168.1.50:8000"
           [(ngModel)]="serverUrl"
         ></ion-input>
       }
@@ -60,10 +61,12 @@
         }
       </ion-button>
 
-      <ion-button type="button" fill="clear" size="small" color="secondary" (click)="toggleServer()">
-        <ion-icon slot="start" name="server-outline"></ion-icon>
-        {{ showServer() ? 'Ocultar servidor' : 'Configurar servidor' }}
-      </ion-button>
+      @if (!config.needsServer()) {
+        <ion-button type="button" fill="clear" size="small" color="secondary" (click)="toggleServer()">
+          <ion-icon slot="start" name="server-outline"></ion-icon>
+          {{ showServer() ? 'Ocultar servidor' : 'Configurar servidor' }}
+        </ion-button>
+      }
     </form>
   </div>
 </ion-content>

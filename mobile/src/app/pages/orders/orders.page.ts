@@ -27,6 +27,7 @@ import {
 import { errorMessage } from '../../core/api-error';
 import type { Order, OrderStatus } from '../../core/models';
 import { MyOrdersService } from '../../core/my-orders.service';
+import { OfflineQueueService } from '../../core/offline-queue.service';
 import { AppHeaderComponent } from '../../shared/app-header.component';
 import { ElapsedPipe, LocalTimePipe, MoneyPipe } from '../../shared/pipes';
 
@@ -56,6 +57,7 @@ const ORDER: OrderStatus[] = ['lista', 'pendiente', 'en_preparacion', 'entregada
 })
 export class OrdersPage {
   readonly myOrders = inject(MyOrdersService);
+  readonly queue = inject(OfflineQueueService);
   private readonly alerts = inject(AlertController);
   private readonly toasts = inject(ToastController);
   private readonly router = inject(Router);
@@ -153,6 +155,26 @@ export class OrdersPage {
             return true;
           },
         },
+      ],
+    });
+    await alert.present();
+  }
+
+  async retryQueued(key: string): Promise<void> {
+    const sent = await this.queue.retry(key);
+    if (sent.length === 0 && this.queue.items().some((q) => q.payload.idempotency_key === key)) {
+      const item = this.queue.items().find((q) => q.payload.idempotency_key === key);
+      await this.toast(item?.error || 'Todavía no hay conexión. Se volverá a intentar sola.', 'danger');
+    }
+  }
+
+  async discardQueued(key: string): Promise<void> {
+    const alert = await this.alerts.create({
+      header: 'Descartar comanda',
+      message: 'La comanda no se enviará a cocina. ¿Descartarla?',
+      buttons: [
+        { text: 'Volver', role: 'cancel' },
+        { text: 'Descartar', role: 'destructive', handler: () => void this.queue.discard(key) },
       ],
     });
     await alert.present();

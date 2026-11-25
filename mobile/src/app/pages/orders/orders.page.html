@@ -13,6 +13,46 @@
     </div>
   }
 
+  @if (queue.items().length > 0) {
+    <section class="card outbox" data-testid="outbox">
+      <h2>Guardadas en el teléfono</h2>
+      <p class="muted small">Se envían solas al volver la señal, sin duplicarse.</p>
+      @for (q of queue.items(); track q.payload.idempotency_key) {
+        <div class="outbox-item" [class.rejected]="q.status === 'rechazada'">
+          <div>
+            <strong>Mesa {{ q.tableNumber }}</strong>
+            <span class="muted small">
+              · {{ q.itemCount }} platillo(s) · {{ q.totalCents | money }} · {{ q.queuedAt | localTime }}</span
+            >
+            @switch (q.status) {
+              @case ('enviando') {
+                <div class="small">Enviando…</div>
+              }
+              @case ('rechazada') {
+                <div class="small error">Rechazada: {{ q.error }}</div>
+              }
+              @default {
+                <div class="small">
+                  Pendiente de enviar{{ q.attempts > 0 ? ' · ' + q.attempts + ' intento(s)' : '' }}
+                </div>
+              }
+            }
+          </div>
+          <div class="outbox-actions">
+            <ion-button size="small" fill="outline" color="secondary" (click)="retryQueued(q.payload.idempotency_key)">
+              Reintentar
+            </ion-button>
+            @if (q.status === 'rechazada') {
+              <ion-button size="small" fill="clear" color="danger" (click)="discardQueued(q.payload.idempotency_key)">
+                Descartar
+              </ion-button>
+            }
+          </div>
+        </div>
+      }
+    </section>
+  }
+
   <ion-segment [value]="filter()" (ionChange)="setFilter($event.detail.value)" scrollable>
     <ion-segment-button value="todas"><ion-label>Todas</ion-label></ion-segment-button>
     <ion-segment-button value="lista"

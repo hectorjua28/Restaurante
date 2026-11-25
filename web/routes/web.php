@@ -2,12 +2,16 @@
 
 use App\Http\Controllers\Admin\ReportCsvController;
 use App\Http\Controllers\Auth\WebAuthController;
+use App\Http\Controllers\MobileAppController;
 use App\Livewire\Admin;
 use App\Livewire\Kitchen\Availability;
 use App\Livewire\Kitchen\Board;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login');
+
+// App de meseros (PWA) publicada en /app.
+Route::get('/app/{path?}', MobileAppController::class)->where('path', '.*')->name('mobile-app');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [WebAuthController::class, 'create'])->name('login');
