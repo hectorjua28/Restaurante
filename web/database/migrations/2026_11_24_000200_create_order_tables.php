@@ -48,8 +48,8 @@ return new class extends Migration
         Schema::create('cash_closings', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->restrictOnDelete();
-            $table->timestamp('period_start')->nullable();
-            $table->timestamp('period_end');
+            $table->dateTime('period_start')->nullable();
+            $table->dateTime('period_end');
             $table->unsignedInteger('cash_cents')->default(0);
             $table->unsignedInteger('card_cents')->default(0);
             $table->unsignedInteger('transfer_cents')->default(0);
